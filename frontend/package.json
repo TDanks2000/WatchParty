@@ -1,0 +1,13 @@
+{
+  "name": "WatchParty-frontend",
+  "version": "0.0.1",
+  "main": "index.js",
+  "author": "IMakeStuff",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "@types/node": "^20.4.8",
+    "typescript": "^5.1.6"
+  },
+  "dependencies": {}
+}
