@@ -7,7 +7,9 @@ import {
   PlayStatusHandler,
   SendMessageHandler,
   TypingStatusHandler,
+  changeRoomHandler,
   getRoomsHandler,
+  leaveRoomHandler,
 } from "./hadnlers";
 import {
   CreateRoomData,
@@ -29,6 +31,8 @@ const createClient = (conn: Socket) => {
   return new Client(conn);
 };
 
+const PORT = process.env.PORT ?? 3002;
+
 io.on("connection", (socket) => {
   console.info("Connected", socket.id);
   const client = createClient(socket);
@@ -36,11 +40,17 @@ io.on("connection", (socket) => {
   socket.on("disconnect", (reason) => {
     console.setColor("redBright");
     console.log("Disconnected", reason);
+    client.watchroom?.leave(client);
+    client.sendEmit("left_room", true);
   });
 
   socket.on("create_room", (data: CreateRoomData) => CreateRoomHandler(client, data));
 
   socket.on("join_room", (data: JoinRoomData) => JoinRoomHandler(client, data));
+
+  socket.on("leave_room", () => leaveRoomHandler(client));
+
+  socket.on("change_room", (data: JoinRoomData) => changeRoomHandler(client, data));
 
   socket.on("get_all_rooms", () => getRoomsHandler(client));
 
@@ -51,7 +61,7 @@ io.on("connection", (socket) => {
   socket.on("typing_status", (data: TypingStatusData) => TypingStatusHandler(client, data));
 });
 
-httpServer.listen(3000, () => {
+httpServer.listen(PORT, () => {
   console.setColor("greenBright");
-  console.log(`Server started on port 3000`);
+  console.log(`Server started on port ${PORT}`);
 });

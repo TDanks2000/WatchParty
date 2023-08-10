@@ -9,12 +9,7 @@ import {
 } from "../@types";
 import { Data } from "../utils/Data";
 import Client from "../structs/Client";
-import Queue from "../structs/Queue";
 import { isClientInWatchroom } from "../services";
-
-const createQueue = () => {
-  return new Queue();
-};
 
 // create_room
 export const CreateRoomHandler = (client: Client, data: CreateRoomData) => {
@@ -34,8 +29,7 @@ export const CreateRoomHandler = (client: Client, data: CreateRoomData) => {
     client.setUsername(data.username);
     Data.createWatchroom(data.id, client);
 
-    client.send({
-      type: "create_room",
+    client.sendEmit("create_room", {
       message: `Watchroom ${data.id} created`,
     });
   }
@@ -61,8 +55,7 @@ export const JoinRoomHandler = (client: Client, data: JoinRoomData) => {
     client.setUsername(data.username);
     watchroom.join(client);
 
-    client.send({
-      type: "join_room",
+    client.sendEmit("join_room", {
       message: `Joined ${data.name}`,
     });
 
@@ -70,23 +63,40 @@ export const JoinRoomHandler = (client: Client, data: JoinRoomData) => {
       type: "join_room",
       message: `${data.username} joined`,
     });
+
+    console.info(`${data.username} has joined ${watchroom.id}`);
   }
 };
 
+// get_all_rooms
 export const getRoomsHandler = (client: Client) => {
   const rooms = Data.getWatchrooms();
   let room_names = [...rooms.keys()];
   room_names.sort();
 
-  client.send({
+  client.sendEmit("rooms", {
     room_names,
   });
 };
 
+// leave_room
+export const leaveRoomHandler = (client: Client) => {
+  client.watchroom?.leave(client);
+  client.sendEmit("left_room", true);
+};
+
+// change_room
+export const changeRoomHandler = (client: Client, data: JoinRoomData) => {
+  client.watchroom?.leave(client);
+  JoinRoomHandler(client, data);
+};
+
+// play_status
 export const PlayStatusHandler = (client: Client, data: PlayStatusData) => {
   client.broadcast(data);
 };
 
+// send_message
 export const SendMessageHandler = (client: Client, data: MessageData) => {
   client.broadcast({
     username: client.username,
@@ -94,6 +104,7 @@ export const SendMessageHandler = (client: Client, data: MessageData) => {
   });
 };
 
+// typing_status
 export const TypingStatusHandler = (client: Client, data: TypingStatusData) => {
   client.broadcast({
     username: client.username,

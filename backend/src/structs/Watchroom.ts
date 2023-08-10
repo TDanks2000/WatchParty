@@ -28,6 +28,8 @@ class Watchroom {
   }
 
   leave(client: Client) {
+    const watchroomName = client.watchroom?.id ?? "unknown";
+
     if (client.watchroom !== this) {
       // throw new Error('Client not in watchroom');
       console.log("Client not in watchroom");
@@ -35,6 +37,8 @@ class Watchroom {
     }
     this.clients.delete(client);
     client.watchroom = null;
+
+    console.info(`${client.username ?? client.id} has left watchroom ${watchroomName}`);
   }
 }
 
